@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import textwrap
 from typing import List, Optional
@@ -182,7 +183,6 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if cmd in catalog_only_commands:
         from openpond.catalog import Catalog
-        import os
 
         data_root = args.data_root or os.path.join(os.path.expanduser("~"), ".openpond")
         catalog = Catalog(os.path.join(data_root, "catalog"))
@@ -230,11 +230,6 @@ def main(argv: Optional[List[str]] = None) -> int:
                     print(f"  {k} = {v}")
 
         elif cmd == "create-database":
-            import os
-
-            data_root = args.data_root or os.path.join(
-                os.path.expanduser("~"), ".openpond"
-            )
             catalog.create_database(
                 args.name,
                 location=os.path.join(data_root, "data", args.name),

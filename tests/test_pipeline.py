@@ -45,7 +45,7 @@ class TestPipelineExecution:
         result = pipeline.run()
         assert not result.success
         assert len(result.steps) == 2  # third step never ran
-        assert result.steps[1].error == "oops"
+        assert "oops" in result.steps[1].error
         assert len(result.failed_steps) == 1
 
     def test_pipeline_result_metadata(self):

@@ -183,12 +183,14 @@ class Pipeline:
                     rows_in=rows_in,
                     rows_out=rows_out,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception:  # noqa: BLE001
+                import traceback
+
                 step_result = StepResult(
                     name=step.name,
                     success=False,
                     duration_secs=time.time() - step_start,
-                    error=str(exc),
+                    error=traceback.format_exc(),
                 )
                 overall_success = False
 
