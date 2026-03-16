@@ -1,0 +1,44 @@
+# Deploying SmallPond/DuckDB worker nodes to AKS/EKS via KubeRay Operator
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: pondhouse-raycluster
+  namespace: pondhouse
+spec:
+  rayVersion: '2.9.0'
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: '0.0.0.0'
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: rayproject/ray:2.9.0-py311
+          # Install SmallPond and Cloud libraries dynamically
+          command: ["/bin/bash", "-c", "pip install smallpond duckdb adlfs s3fs gcsfs && ray start --head --dashboard-host=0.0.0.0 --block"]
+          ports:
+          - containerPort: 6379
+            name: redis
+          - containerPort: 8265
+            name: dashboard
+          - containerPort: 10001
+            name: client
+  workerGroupSpecs:
+  - groupName: smallpond-workers
+    replicas: 3 # Scale this to process TB/PB datasets
+    minReplicas: 1
+    maxReplicas: 10
+    rayStartParams: {}
+    template:
+      spec:
+        containers:
+        - name: ray-worker
+          image: rayproject/ray:2.9.0-py311
+          command: ["/bin/bash", "-c", "pip install smallpond duckdb adlfs s3fs gcsfs && ray start --address=pondhouse-raycluster-head-svc:6379 --block"]
+          resources:
+            requests:
+              cpu: "2"
+              memory: "8Gi"
+            limits:
+              cpu: "4"
+              memory: "16Gi"
