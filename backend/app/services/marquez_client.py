@@ -5,7 +5,7 @@ import datetime
 import os
 
 MARQUEZ_URL = os.environ.get("MARQUEZ_URL", "http://localhost:5000")
-NAMESPACE = "pondhouse_default"
+NAMESPACE = "openpond_default"
 DATA_DIR = "backend/data"
 
 def _ensure_namespace():
@@ -13,8 +13,8 @@ def _ensure_namespace():
     try:
         url = f"{MARQUEZ_URL}/api/v1/namespaces/{NAMESPACE}"
         res = requests.put(url, json={
-            "ownerName": "PondHouse_System",
-            "description": "Default namespace for PondHouse analytics"
+            "ownerName": "OpenPond_System",
+            "description": "Default namespace for OpenPond analytics"
         }, timeout=2)
         return True
     except Exception:
@@ -65,7 +65,7 @@ def register_dataset(file_name, file_path, schema=None):
         "physicalName": file_name,
         "sourceName": "local_fs",
         "fields": schema or [],
-        "description": f"Uploaded via PondHouse at {datetime.datetime.now().isoformat()}"
+        "description": f"Uploaded via OpenPond at {datetime.datetime.now().isoformat()}"
     }
 
     try:
@@ -95,7 +95,7 @@ def log_job_run(job_name, query, input_datasets, output_dataset=None):
             "name": job_name,
             "facets": {
                 "sql": {
-                    "_producer": "pondhouse",
+                    "_producer": "openpond",
                     "_schemaURL": "https://openlineage.io/spec/facets/1-0-0/SQLJobFacet.json",
                     "query": query
                 }

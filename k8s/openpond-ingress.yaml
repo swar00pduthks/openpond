@@ -1,19 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pondhouse-ingress
-  namespace: pondhouse
+  name: openpond-ingress
+  namespace: openpond
   annotations:
     kubernetes.io/ingress.class: nginx
 spec:
   rules:
-  - host: pondhouse.yourdomain.com
+  - host: openpond.yourdomain.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: pondhouse-core-svc
+            name: openpond-core-svc
             port:
               number: 80

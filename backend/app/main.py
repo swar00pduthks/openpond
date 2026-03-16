@@ -5,7 +5,7 @@ import os
 
 from .api.endpoints import query, catalog, upload, orchestrate
 
-app = FastAPI(title="PondHouse Data Platform", version="0.1.0")
+app = FastAPI(title="OpenPond Data Platform", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +22,7 @@ app.include_router(orchestrate.router, prefix="/api/v1/orchestrate", tags=["orch
 
 @app.get("/api/health")
 def health_check():
-    return {"status": "ok", "service": "PondHouse Control Plane"}
+    return {"status": "ok", "service": "OpenPond Control Plane"}
 
 # Serve the React frontend (the single pane of glass)
 if os.path.exists("frontend/dist"):
