@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import Dict, Any
 import duckdb
 
 from ...services.marquez_client import list_datasets, log_job_run
@@ -37,10 +37,14 @@ def execute_aaf_dag(request: ExecuteRequest):
     dag_results = []
 
     con = duckdb.connect(database=':memory:')
+
+    # Initialize a default error reference
+    current_task_id = "initialization"
+
     try:
         # Pre-register physical datasets needed by the DAG
-        for task in agent_dag["tasks"]:
-            for input_ds in task["inputs"]:
+        for task in agent_dag.get("tasks", []):
+            for input_ds in task.get("inputs", []):
                 if input_ds in catalog_map:
                     file_uri = catalog_map[input_ds]
                     if file_uri.endswith('.parquet'):
@@ -49,14 +53,19 @@ def execute_aaf_dag(request: ExecuteRequest):
                         con.execute(f"CREATE OR REPLACE VIEW {input_ds} AS SELECT * FROM read_csv_auto('{file_uri}')")
 
         # Execute the DAG sequentially
-        for task in agent_dag["tasks"]:
-            job_name = f"AAF_{agent_dag['dag_id']}_{task['task_id']}"
-            run_id = log_job_run(job_name, task["query"], task["inputs"], task["outputs"][0] if task["outputs"] else None)
+        for task in agent_dag.get("tasks", []):
+            current_task_id = task.get("task_id", "unknown")
+            job_name = f"AAF_{agent_dag['dag_id']}_{current_task_id}"
+
+            outputs = task.get("outputs", [])
+            output_name = outputs[0] if outputs else None
+
+            run_id = log_job_run(job_name, task["query"], task.get("inputs", []), output_name)
 
             pd_result = con.execute(task["query"]).df()
 
             dag_results.append({
-                "task_id": task["task_id"],
+                "task_id": current_task_id,
                 "run_id": run_id,
                 "status": "success",
                 "columns": [{"name": col, "type": str(dtype)} for col, dtype in pd_result.dtypes.items()] if not pd_result.empty else [],
@@ -66,11 +75,11 @@ def execute_aaf_dag(request: ExecuteRequest):
 
     except Exception as e:
         con.close()
-        raise HTTPException(status_code=500, detail=f"AAF DAG Execution Failed at node '{task['task_id']}': {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AAF DAG Execution Failed at node '{current_task_id}': {str(e)}")
 
     con.close()
 
     return {
-        "dag_id": agent_dag["dag_id"],
+        "dag_id": agent_dag.get("dag_id", "unknown"),
         "results": dag_results
     }

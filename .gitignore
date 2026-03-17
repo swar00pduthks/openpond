@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*$py.class
+frontend/node_modules/
+frontend/dist/
+backend/data/
+*.png
+.env

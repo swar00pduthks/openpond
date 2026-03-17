@@ -2,7 +2,7 @@ import smallpond
 import pandas as pd
 import duckdb
 import os
-import uuid
+import re
 
 # Global session instance
 _sp_session = None
@@ -39,8 +39,11 @@ def execute_query(query: str, datasets: dict) -> dict:
 
         ordered_dfs = []
         formatted_query = query
+
+        # Use regex word boundaries (\b) to safely replace table names
         for idx, (table_name, sp_df) in enumerate(sp_dfs.items()):
-            formatted_query = formatted_query.replace(table_name, f"{{{idx}}}")
+            pattern = r'\b' + re.escape(table_name) + r'\b'
+            formatted_query = re.sub(pattern, f"{{{idx}}}", formatted_query)
             ordered_dfs.append(sp_df)
 
         try:
