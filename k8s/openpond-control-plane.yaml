@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openpond-core
+  namespace: openpond
+  labels:
+    app: openpond-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openpond-core
+  template:
+    metadata:
+      labels:
+        app: openpond-core
+    spec:
+      containers:
+      - name: openpond-api
+        image: ghcr.io/your-org/openpond:latest # Replaced via CI/CD
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PONDHOUSE_DATA_URI
+          value: "az://my-adls-container/data" # Example Cloud Object Store
+        - name: AZURE_STORAGE_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: openpond-secrets
+              key: azure-connection-string
+        - name: RAY_ADDRESS
+          value: "ray://openpond-raycluster-head-svc:10001" # Pointing to KubeRay cluster
+        - name: MARQUEZ_URL
+          value: "http://marquez-api.marquez.svc.cluster.local:5000" # Internal DNS to user's Marquez fork
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openpond-core-svc
+  namespace: openpond
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: openpond-core

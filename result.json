@@ -1,0 +1,1 @@
+{"run_id":"636a04c4-09ed-42c5-a477-ffb2e3401780","result":{"columns":[{"name":"category","type":"str"},{"name":"total_sales","type":"float64"}],"data":[{"category":"C","total_sales":12750.0},{"category":"D","total_sales":13000.0},{"category":"A","total_sales":12250.0},{"category":"B","total_sales":12500.0}],"row_count":4,"status":"success"}}
